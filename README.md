@@ -12,7 +12,7 @@ The dataset contains most things I need to do the market trend analysis. I use t
 
 FUTURE WORK: I will continue to add all more features to tell the story in different perspectives and plan to update the data in the future.
 
-Link to the Streamlit app:
+Link to the Streamlit app: https://shermans-charlotte-housing-analysis.streamlit.app/
 
 If you're interested in this project, check out this Tableau dashboard of the same analysis.
 
