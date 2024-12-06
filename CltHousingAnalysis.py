@@ -114,8 +114,8 @@ def KPI(clt, house_type):
     kpi_style = """
         <style>
             .kpi {
-                color: #1E3A5F;
-                font-size: 18px;
+                color: red;
+                font-size: 20px;
                 font-weight: bold;
                 text-align: center;
             }
