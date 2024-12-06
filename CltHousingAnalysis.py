@@ -167,125 +167,116 @@ def market_trend():
 
     # Filter the DataFrame based on the selected building type
     clt_selection = clt.query("descbuildingtype == @house_type")
-    left_column,  right_column = st.columns(2)
-    with left_column:
-        # Plotting a 20 years trend line chart:
-        # Filter data based on house type selection
+
+    # Plotting a 20 years trend line chart:
+    # Filter data based on house type selection
+    if house_type == "ALL":
+        clt_selection = clt  # Use all house types if "ALL" is selected
+    else:
+        clt_selection = clt[clt["descbuildingtype"] == house_type]
+
+    # Group data by year and building type and calculate median price
+    median_prices_by_year_buildingtype = clt_selection.groupby(["yearofsale", "descbuildingtype"])["price"].median().unstack()
+
+    # Create the figure for the trend chart
+    chart_20_year_trend = plt.figure(figsize=(10, 6))
+
+    # Define the colors for each building type
+    colors = ['#1E3A5F', 'orange', 'steelblue']  # Add more colors if needed
+
+    # Define a function to format the price axis as an integer (in thousands with 'k' suffix)
+    def format_price(x, pos):
+        return f'${int(x / 1000)}k'  # Format as integer in $Xk
+
+    # Plot each building type with the corresponding color
+    for idx, buildingtype in enumerate(median_prices_by_year_buildingtype.columns):
+        plt.plot(
+            median_prices_by_year_buildingtype.index,
+            median_prices_by_year_buildingtype[buildingtype],
+            marker="o",
+            label=buildingtype,
+            color=colors[idx]  # Assign the color from the list
+        )
+
+        # For "ALL", display the median price for 2024 at the end of each line
         if house_type == "ALL":
-            clt_selection = clt  # Use all house types if "ALL" is selected
-        else:
-            clt_selection = clt[clt["descbuildingtype"] == house_type]
-
-        if house_type == "ALL":
-            median_prices_by_year_buildingtype = clt.groupby(["yearofsale", "descbuildingtype"])["price"].median().unstack()
-        else:
-            median_prices_by_year_buildingtype = clt_selection.groupby(["yearofsale", "descbuildingtype"])["price"].median().unstack()
-
-        # Group data by year and building type and calculate median price
-        if house_type == "ALL":
-            median_prices_by_year_buildingtype = clt.groupby(["yearofsale", "descbuildingtype"])["price"].median().unstack()
-        else:
-            median_prices_by_year_buildingtype = clt_selection.groupby(["yearofsale", "descbuildingtype"])["price"].median().unstack()
-
-        # Create the figure for the trend chart
-        chart_20_year_trend = plt.figure(figsize=(10, 6))
-
-        # Define the colors for each building type
-        colors = ['#1E3A5F', 'orange', 'steelblue']  # Add more colors if needed
-
-        # Define a function to format the price axis as an integer (in thousands with 'k' suffix)
-        def format_price(x, pos):
-            return f'${int(x / 1000)}k'  # Format as integer in $Xk
-
-        # Plot each building type with the corresponding color
-        for idx, buildingtype in enumerate(median_prices_by_year_buildingtype.columns):
-            plt.plot(
-                median_prices_by_year_buildingtype.index,
-                median_prices_by_year_buildingtype[buildingtype],
-                marker="o",
-                label=buildingtype,
-                color=colors[idx]  # Assign the color from the list
+            # Get the median price for 2024 (last year)
+            median_price_2024 = median_prices_by_year_buildingtype.loc[2024, buildingtype]
+            
+            # Display the median price for 2024 at the end of each line
+            plt.text(
+                2024, median_price_2024, f"${int(median_price_2024 // 1000)}k", 
+                color=colors[idx], 
+                verticalalignment='bottom', horizontalalignment='center', 
+                fontsize=10, fontweight='bold'
             )
 
-            # For "ALL", display the median price for 2024 at the end of each line
-            if house_type == "ALL":
-                # Get the median price for 2024 (last year)
-                median_price_2024 = median_prices_by_year_buildingtype.loc[2024, buildingtype]
-                
-                # Display the median price for 2024 at the end of each line
-                plt.text(
-                    2024, median_price_2024, f"${int(median_price_2024 // 1000)}k", 
-                    color=colors[idx], 
-                    verticalalignment='bottom', horizontalalignment='center', 
-                    fontsize=10, fontweight='bold'
+    # Add title and labels
+    plt.title("20-Year House Price Trend")
+    plt.xlabel("Year of Sale")
+    plt.ylabel("Median Price ($k)")  # Change y-axis label to show $k
+    plt.legend(title="House Type")
+    plt.grid(True)
+
+    # Format the y-axis to show values in $k
+    plt.gca().yaxis.set_major_formatter(FuncFormatter(format_price))
+
+    # Display the plot in Streamlit
+    st.pyplot(chart_20_year_trend)
+
+    # Plotting a 20 years trend bar chart:
+    # Filter the data for the years 2003, 2013, 2018, and 2024
+    filtered_years = [2003, 2013, 2018, 2024]
+    filtered_data = clt[clt["yearofsale"].isin(filtered_years)]
+
+    # Filter data based on the selected house type
+    if house_type == "ALL":
+        clt_selection = filtered_data  # Use all house types if "ALL" is selected
+    else:
+        clt_selection = filtered_data[filtered_data["descbuildingtype"] == house_type]
+
+    # Group by year and building type and calculate the median price
+    median_prices = clt_selection.groupby(["descbuildingtype", "yearofsale"])["price"].median().unstack(level=1)
+
+    # Plotting the side-by-side bar chart
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    # Define custom colors for each year
+    colors = ['#1E3A5F', 'orange', 'steelblue', 'lightsteelblue']
+
+    # Plot median prices as bars for each house type and year
+    bars = median_prices.plot(kind="bar", ax=ax, width=0.8, color=colors)
+
+    # Add title and labels
+    plt.title("House Price in 20 Years", fontsize=16)
+    plt.xlabel("House Type", fontsize=14)
+    plt.ylabel("Median Price ($k)", fontsize=14)
+    plt.xticks(rotation=0)  # Set x-axis labels to be horizontal
+
+    # Add the median price on top of each bar
+    for container in bars.containers:
+        for bar in container:
+            # Get the height of each bar
+            height = bar.get_height()
+            if height > 0:  # Avoid displaying text for bars with no height
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,  # X-coordinate of the bar center
+                    height,  # Y-coordinate (height of the bar)
+                    f"${int(height / 1000):,}k",  # Format the text as $k
+                    ha='center', va='bottom', fontsize=10, color='black'
                 )
 
-        # Add title and labels
-        plt.title("20-Year House Price Trend")
-        plt.xlabel("Year of Sale")
-        plt.ylabel("Median Price")
-        plt.legend(title="House Type")
-        plt.grid(True)
+    # Adjust y-axis labels to show scale in $k
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${int(x / 1000):,}k"))
 
-        # Display the plot in Streamlit
-        st.pyplot(chart_20_year_trend)
+    # Add a legend to differentiate house types
+    plt.legend(title="Year of Sale", title_fontsize='13', loc='upper left', bbox_to_anchor=(1, 1))
 
-    with right_column:
-        # Plotting a 20 years trend bar chart: 
-        
-        # Filter the data for the years 2003, 2013, 2018, and 2024
-        # Filter the data for the selected years
-        filtered_years = [2003, 2013, 2018, 2024]
-        filtered_data = clt[clt["yearofsale"].isin(filtered_years)]
+    # Adjust layout to prevent overlapping
+    plt.tight_layout()
 
-        # Define custom colors for each year
-        colors = ['#1E3A5F', 'orange', 'steelblue', 'lightsteelblue']
-
-        # Filter data based on the selected house type
-        if house_type == "ALL":
-            clt_selection = filtered_data  # Use all house types if "ALL" is selected
-        else:
-            clt_selection = filtered_data[filtered_data["descbuildingtype"] == house_type]
-
-        # Group by year and building type and calculate the median price
-        median_prices = clt_selection.groupby(["descbuildingtype", "yearofsale"])["price"].median().unstack(level=1)
-
-        # Plotting the side-by-side bar chart
-        fig, ax = plt.subplots(figsize=(12, 8))
-
-        # Plot median prices as bars for each house type and year
-        bars = median_prices.plot(kind="bar", ax=ax, width=0.8, color=colors)
-
-        # Add title and labels
-        plt.title("House Price in 20 Years", fontsize=16)
-        plt.xlabel("House Type", fontsize=14)
-        plt.ylabel("Median Price ($k)", fontsize=14)
-        plt.xticks(rotation=0)  # Set x-axis labels to be horizontal
-
-        # Add the median price on top of each bar
-        for container in bars.containers:
-            for bar in container:
-                # Get the height of each bar
-                height = bar.get_height()
-                if height > 0:  # Avoid displaying text for bars with no height
-                    ax.text(
-                        bar.get_x() + bar.get_width() / 2,  # X-coordinate of the bar center
-                        height,  # Y-coordinate (height of the bar)
-                        f"${int(height / 1000):,}k",  # Format the text as $k
-                        ha='center', va='bottom', fontsize=10, color='black'
-                    )
-
-        # Adjust y-axis labels to show scale in $k
-        ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${int(x / 1000):,}k"))
-
-        # Add a legend to differentiate house types
-        plt.legend(title="Year of Sale", title_fontsize='13', loc='upper left', bbox_to_anchor=(1, 1))
-
-        # Adjust layout to prevent overlapping
-        plt.tight_layout()
-
-        # Display the plot in Streamlit
-        st.pyplot(fig)
+    # Display the plot in Streamlit
+    st.pyplot(fig)
 
 # What to Buy Page function:
 def what_to_buy():
