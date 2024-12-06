@@ -446,7 +446,10 @@ def where_to_buy():
         # Add the title and description
         st.markdown("<h1 style='text-align: center; color: red;'> Housing Market Trend Analysis in Charlotte Region</h1>", unsafe_allow_html=True)
         st.markdown("<h3 style='text-align: center; color: #1E3A5F;'>The summary shows the increase of median house price from 2003 to 2023</h3>", unsafe_allow_html=True)
-
+    
+        # Call the KPI function
+        KPI(clt, house_type)
+  
         # Convert 'dateofsale' to datetime and extract the year
         clt["dateofsale"] = pd.to_datetime(clt["dateofsale"])
         clt["yearofsale"] = clt["dateofsale"].dt.year
