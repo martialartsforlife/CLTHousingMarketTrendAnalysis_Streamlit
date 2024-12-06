@@ -426,7 +426,7 @@ def what_to_buy():
 
     # Show the legend
     ax1.legend(loc='upper left')
-    ax2.legend(loc='upper right')
+    ax2.legend(loc='upper center')
 
     # Show the plot
     plt.tight_layout()
