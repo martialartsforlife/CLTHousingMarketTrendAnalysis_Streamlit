@@ -327,6 +327,13 @@ def what_to_buy():
     # Define custom colors for each bedroom count
     colors = ['#1E3A5F', 'orange', 'steelblue', 'lightsteelblue']  # Color for 2, 3, 4, and 5 bedrooms
 
+    # Define a formatter function to convert values to $k format
+    def to_k_format(value, tick_number):
+        return f"${int(value / 1000)}k"
+
+    # Apply the formatter to the y-axis
+    ax.yaxis.set_major_formatter(FuncFormatter(to_k_format))
+    
     # Plot the bars for each bedroom count (overlapping bars)
     for i, bedroom_count in enumerate([2, 3, 4, 5]):
         bars = ax.bar(
@@ -396,6 +403,13 @@ def what_to_buy():
     ax2.set_ylabel('Price ($)', color='black')  # Set y-axis label color to black
     ax2.tick_params(axis='y', labelcolor='black')
 
+    # Define a formatter function to convert values to $k format
+    def to_k_format(value, tick_number):
+        return f"${int(value / 1000)}k"
+
+    # Apply the formatter to the price y-axis (right axis)
+    ax2.yaxis.set_major_formatter(FuncFormatter(to_k_format))
+
     # Annotate with the median price and square feet for 2024
     if 2024 in median_prices.index:
         median_price_2024 = median_prices.loc[2024]
@@ -426,7 +440,7 @@ def what_to_buy():
 
     # Show the legend
     ax1.legend(loc='upper left')
-    ax2.legend(loc='upper right')
+    ax2.legend(loc='upper center')
 
     # Show the plot
     plt.tight_layout()
