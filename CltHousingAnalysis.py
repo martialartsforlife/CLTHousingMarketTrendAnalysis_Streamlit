@@ -314,14 +314,13 @@ def what_to_buy():
 
     # Create a figure and axis object
     fig, ax = plt.subplots(figsize=(10, 6))
-
     bar_width = 0.15
     years = median_prices["yearofsale"]
 
-    # Create the bar positions
+    # Defiine the bar positions
     positions = range(len(years))
 
-    # Define custom colors for each bedroom count
+    # Colors for each bedroom count
     colors = ['#1E3A5F', 'orange', 'steelblue', 'lightsteelblue']  # Color for 2, 3, 4, and 5 bedrooms
 
     # Formatting the chart
@@ -384,10 +383,10 @@ def what_to_buy():
     # Group by year and calculate median heated area
     median_area = filtered_data.groupby(["yearofsale"])["heatedarea"].median()
 
-    # Create a dual-axis chart
+    # Create a dual-axis chart by plotting the median size in SQFT as a bar chart on the left y-axis and price on the right y-axis
     fig, ax1 = plt.subplots(figsize=(10, 6))
 
-    # Plot the median heated area as a bar chart on the left y-axis
+    # The first yaxis on the left, the size of houses
     ax1.bar(median_area.index, median_area, color='orange', alpha=0.6, label='Size in SQFT')
     ax1.set_xlabel('Year')
     ax1.set_ylabel('Size in SQFT', color='black')  # Set y-axis label color to black
@@ -456,8 +455,6 @@ def where_to_buy():
         clt["yearofsale"] = clt["dateofsale"].dt.year
         
         # Plotting the House Growth by Region chart
-
-        # Your code for the first chart
         # Filter data based on house type selection
         if house_type == "ALL":
             clt_selection = clt  # Use all house types if "ALL" is selected
@@ -473,23 +470,22 @@ def where_to_buy():
         # Calculate the difference between the 2023 median price and 2003 median price
         median_prices['price_difference'] = median_prices[2023] - median_prices[2003]
 
-        # Exclude rows where the price difference is NaN
+        # Disregard any NULL price difference
         median_price_diff_by_city = median_prices.dropna(subset=['price_difference']).astype(int)
 
         # Calculate the growth rate: (Median Price in 2023 - Median Price in 2003) / Median Price in 2003 * 100
         median_price_diff_by_city['growth_rate'] = ((median_price_diff_by_city[2023] - median_price_diff_by_city[2003]) / median_price_diff_by_city[2003]) * 100
 
-        # Convert the growth rate to a readable format (e.g., rounded to 2 decimal places)
+        # Round the growth rate to 2 decimal places and add % sign
         #median_price_diff_by_city['growth_rate'] = median_price_diff_by_city['growth_rate'].round(2)
         median_price_diff_by_city['growth_rate'] = median_price_diff_by_city['growth_rate'].round(2).astype(str) + " %"
 
         # Format the price difference for readability (e.g., $Xk)
         median_price_diff_by_city['price_difference'] = median_price_diff_by_city['price_difference'].apply(lambda x: f"${x // 1000}k")
 
-        # Prepare the data for the plot
+        # Plotting the chart
         plot_data = median_price_diff_by_city[['price_difference', 'growth_rate']].reset_index()
 
-        # Create the horizontal bar chart using Plotly Express
         fig1 = px.bar(
             plot_data, 
             x='price_difference', 
@@ -501,7 +497,7 @@ def where_to_buy():
             color_discrete_sequence=['steelblue']
         )
 
-        # Update layout for better presentation
+        # Update layout
         fig1.update_layout(
             title={
                 'text': f"House Price Growth by Regions (2003-2023) for {house_type} Homes",
