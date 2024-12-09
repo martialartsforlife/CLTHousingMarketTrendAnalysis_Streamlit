@@ -72,7 +72,7 @@ def KPI(clt, house_type):
 
     # Function to calculate median prices and growth rate for a list of house types
     def calculate_kpis_for_house_types(house_type, data):
-        # If all house types are selected, calculate the metrics for all of them combined
+        # If all house types are selected, calculate the combined prices
         if house_type == "ALL":
             # Calculate for all `descbuildingtype` combined
             median_price_2003 = data[data["yearofsale"] == 2003]["price"].median()
@@ -85,7 +85,7 @@ def KPI(clt, house_type):
                 "Growth Rate": f"{growth_rate:.2f}%"
             }
         
-        # If specific house type is selected, calculate for that house type
+        # If a specific house type is selected, only returns the result for that house type
         clt_house = data[data["descbuildingtype"] == house_type]
         
         # Median price in 2003
@@ -100,7 +100,7 @@ def KPI(clt, house_type):
         growth_rate = ((median_price_2023 - median_price_2003) / median_price_2003) * 100
         growth_rate_str = f"{growth_rate:.2f}%"
         
-        # Store the results for this house type
+        # return the results for this house type
         return {
             "2003 Median Price": median_price_2003_str,
             "2023 Median Price": median_price_2023_str,
@@ -110,7 +110,7 @@ def KPI(clt, house_type):
     # Calculate KPIs based on house type selection
     kpi_results = calculate_kpis_for_house_types(house_type, clt_selection)
 
-    # Define the CSS for red text, font size 13, and centered alignment
+    # CSS styling
     kpi_style = """
         <style>
             .kpi {
@@ -138,7 +138,7 @@ def KPI(clt, house_type):
             st.markdown(f'<div class="kpi">Growth Rate in 20 Years:</div>', unsafe_allow_html=True)
             st.markdown(f'<div class="kpi">{kpi_results["Growth Rate"]}</div>', unsafe_allow_html=True)
     else:
-        # Otherwise, display the result for the selected house type
+        # Otherwise, ONLY display the result for the selected house type
         left_column, middle_column, right_column = st.columns(3)
         with left_column:
             st.markdown(f'<div class="kpi">2003:</div>', unsafe_allow_html=True)
@@ -150,14 +150,14 @@ def KPI(clt, house_type):
             st.markdown(f'<div class="kpi">Growth Rate in 20 Years:</div>', unsafe_allow_html=True)
             st.markdown(f'<div class="kpi">{kpi_results["Growth Rate"]}</div>', unsafe_allow_html=True)
 
-# The Overview page fuction
+# The Overview summary page fuction
 def overview():
     st.markdown("<h1 style='text-align: center; color: red;'> Housing Market Trend Analysis in Charlotte Region</h1>", unsafe_allow_html=True)
     #st.subheader('Overview: This Analysis is to help you understand the housing market trend in Charlotte region in the last 20 years so that you can decide what to buy and where to buy the right kind of properties that will gain the most value in the future.')
     st.markdown("<h3 style='text-align: left; color: #1E3A5F;'>Overview: This Analysis is to help you understand the housing market trend in Charlotte region in the last 20 years so that you can decide what to buy and where to buy the right kind of properties that will gain the most value in the future.</h3>", unsafe_allow_html=True)
     st.image("charlotteLogo.JPG")
 
-# The Market Trend page function
+# The Market Trend page function, each page will call the KPI function on the top part of the page
 def market_trend():
     st.markdown("<h1 style='text-align: center; color: red;'> Housing Market Trend Analysis in Charlotte Region</h1>", unsafe_allow_html=True) 
     st.markdown("<h3 style='text-align: center; color: #1E3A5F;'>The summary shows the increase of median house price from 2003 to 2023</h3>", unsafe_allow_html=True)    
@@ -165,7 +165,7 @@ def market_trend():
     # Call the KPI function
     KPI(clt, house_type)
 
-    # Filter the DataFrame based on the selected building type
+    # Filter the DataFrame based on the selected building type from the sidebar
     clt_selection = clt.query("descbuildingtype == @house_type")
 
     # Plotting a 20 years trend line chart:
@@ -178,17 +178,17 @@ def market_trend():
     # Group data by year and building type and calculate median price
     median_prices_by_year_buildingtype = clt_selection.groupby(["yearofsale", "descbuildingtype"])["price"].median().unstack()
 
-    # Create the figure for the trend chart
+    # Create the figure for the trend line chart
     chart_20_year_trend = plt.figure(figsize=(10, 6))
 
-    # Define the colors for each building type
+    # Define the colors for each line which is the building type
     colors = ['#1E3A5F', 'orange', 'steelblue']  # Add more colors if needed
 
-    # Define a function to format the price axis as an integer (in thousands with 'k' suffix)
+    # Define a function to format the price axis as an integer (in thousands with K suffix)
     def format_price(x, pos):
         return f'${int(x / 1000)}k'  # Format as integer in $Xk
 
-    # Plot each building type with the corresponding color
+    # Plot each building type with the color defined
     for idx, buildingtype in enumerate(median_prices_by_year_buildingtype.columns):
         plt.plot(
             median_prices_by_year_buildingtype.index,
@@ -211,7 +211,7 @@ def market_trend():
                 fontsize=10, fontweight='bold'
             )
 
-    # Add title and labels
+    # Title and labels
     plt.title("20-Year House Price Trend")
     plt.xlabel("Year of Sale")
     plt.ylabel("Median Price ($k)")  # Change y-axis label to show $k
@@ -241,13 +241,13 @@ def market_trend():
     # Plotting the side-by-side bar chart
     fig, ax = plt.subplots(figsize=(12, 8))
 
-    # Define custom colors for each year
+    # Define the colors for each year
     colors = ['#1E3A5F', 'orange', 'steelblue', 'lightsteelblue']
 
     # Plot median prices as bars for each house type and year
     bars = median_prices.plot(kind="bar", ax=ax, width=0.8, color=colors)
 
-    # Add title and labels
+    # Add the chart title and labels
     plt.title("House Price in 20 Years", fontsize=16)
     plt.xlabel("House Type", fontsize=14)
     plt.ylabel("Median Price ($k)", fontsize=14)
@@ -266,16 +266,14 @@ def market_trend():
                     ha='center', va='bottom', fontsize=10, color='black'
                 )
 
-    # Adjust y-axis labels to show scale in $k
+    # Adjust y-axis labels to show scale in $k and legend
     ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"${int(x / 1000):,}k"))
 
-    # Add a legend to differentiate house types
     plt.legend(title="Year of Sale", title_fontsize='13', loc='upper left', bbox_to_anchor=(1, 1))
 
-    # Adjust layout to prevent overlapping
     plt.tight_layout()
 
-    # Display the plot in Streamlit
+    # Display in Streamlit
     st.pyplot(fig)
 
 # What to Buy Page function:
@@ -291,11 +289,11 @@ def what_to_buy():
     clt["dateofsale"] = pd.to_datetime(clt["dateofsale"])
     clt["yearofsale"] = clt["dateofsale"].dt.year
 
-    # Handle missing values for 'bedrooms' and 'price'
+    # Handle NULL values for 'bedrooms' and 'price'
     clt["bedrooms"] = clt["bedrooms"].fillna(0).astype(int)
     clt["price"] = clt["price"].fillna(0).astype(int)
 
-    # Filter data for selected years
+    # Filter data for selected years, we only want to compare 2003, 2008, 2018 and 2023 only
     filtered_data = clt[clt["yearofsale"].isin([2003, 2008, 2013, 2018, 2023])]
 
     # Filter bedrooms between 2 and 5
@@ -317,24 +315,22 @@ def what_to_buy():
     # Create a figure and axis object
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    # Define the number of bars and the width of each bar
     bar_width = 0.15
     years = median_prices["yearofsale"]
 
-    # Create the bar positions (one bar for each bedroom count)
+    # Create the bar positions
     positions = range(len(years))
 
     # Define custom colors for each bedroom count
     colors = ['#1E3A5F', 'orange', 'steelblue', 'lightsteelblue']  # Color for 2, 3, 4, and 5 bedrooms
 
-    # Define a formatter function to convert values to $k format
+    # Formatting the chart
     def to_k_format(value, tick_number):
         return f"${int(value / 1000)}k"
 
-    # Apply the formatter to the y-axis
     ax.yaxis.set_major_formatter(FuncFormatter(to_k_format))
     
-    # Plot the bars for each bedroom count (overlapping bars)
+    # Plot the bars for each bedroom count 
     for i, bedroom_count in enumerate([2, 3, 4, 5]):
         bars = ax.bar(
             [pos + i * bar_width for pos in positions],  # Shift the positions for overlap
@@ -370,7 +366,7 @@ def what_to_buy():
     plt.tight_layout()
     st.pyplot(fig)
 
-    # Plotting House Size vs Price chart
+    # Plotting the 2nd chart called House Size vs Price chart
     # Handle missing values for 'bedrooms', 'price', and 'heatedarea'
     clt["heatedarea"] = clt["heatedarea"].fillna(0).astype(float)
     clt["price"] = clt["price"].fillna(0).astype(float)
